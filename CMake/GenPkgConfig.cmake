@@ -90,6 +90,17 @@ function(gen_pkgconfig_vars)
     endforeach()
   endif()
 
+  # Since CMake 3.18 FindThreads may include a generator expression requiring
+  # a target, which gets propagated to us through INTERFACE_COMPILE_OPTIONS.
+  # Before CMake 3.19 there's no way to solve this in a general way, so we
+  # work around the specific case. See #1414 and CMake bug #21074.
+  if(CMAKE_VERSION VERSION_LESS 3.19)
+    string(REPLACE
+      "<COMPILE_LANG_AND_ID:CUDA,NVIDIA>" "<COMPILE_LANGUAGE:CUDA>"
+      cflags "${cflags}"
+    )
+  endif()
+
   # Set the output variables
   string(REPLACE ";" " " cflags "${cflags}")
   set("${var_prefix}_CFLAGS" "${cflags}" PARENT_SCOPE)
